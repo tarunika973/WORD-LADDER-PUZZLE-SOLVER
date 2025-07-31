@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_WORDS 1000
+#define WORD_LEN 10
+
+typedef struct {
+    char word[WORD_LEN];
+    int parent;
+} Node;
+
+int one_letter_diff(const char *a, const char *b) {
+    int diff = 0;
+    for (int i = 0; a[i]; i++) {
+        if (a[i] != b[i]) diff++;
+        if (diff > 1) return 0;
+    }
+    return diff == 1;
+}
+
+int bfs(char *start, char *end, char dictionary[][WORD_LEN], int dict_size) {
+    Node queue[MAX_WORDS];
+    int visited[MAX_WORDS] = {0};
+    int front = 0, rear = 0;
+
+    strcpy(queue[rear].word, start);
+    queue[rear].parent = -1;
+    rear++;
+
+    while (front < rear) {
+        Node current = queue[front];
+
+        if (strcmp(current.word, end) == 0) {
+            int path[MAX_WORDS], len = 0, idx = front;
+            while (idx != -1) {
+                path[len++] = idx;
+                idx = queue[idx].parent;
+            }
+            for (int i = len - 1; i >= 0; i--)
+                printf("%s%s", queue[path[i]].word, i == 0 ? "\n" : " -> ");
+            return 1;
+        }
+
+        for (int i = 0; i < dict_size; i++) {
+            if (!visited[i] && one_letter_diff(current.word, dictionary[i])) {
+                visited[i] = 1;
+                strcpy(queue[rear].word, dictionary[i]);
+                queue[rear].parent = front;
+                rear++;
+            }
+        }
+        front++;
+    }
+    return 0;
+}
+
+int main() {
+    char dictionary[MAX_WORDS][WORD_LEN];
+    char start[WORD_LEN], end[WORD_LEN];
+    int dict_size;
+
+    printf("Enter start word: ");
+    scanf("%s", start);
+
+    printf("Enter end word: ");
+    scanf("%s", end);
+
+    printf("Enter number of dictionary words: ");
+    scanf("%d", &dict_size);
+
+    printf("Enter the dictionary words (all same length as start/end):\n");
+    for (int i = 0; i < dict_size; i++) {
+        scanf("%s", dictionary[i]);
+    }
+
+    if (!bfs(start, end, dictionary, dict_size))
+        printf("No ladder found.\n");
+
+    return 0;
+}
